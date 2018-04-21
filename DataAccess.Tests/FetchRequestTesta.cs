@@ -1,21 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using DataAccess.MySql;
+using System.Linq;
 using DataAccess.Sqlite;
-using MySql.Data.MySqlClient;
 using Xunit;
 
 namespace DataAccess.Tests
 {
-
     public class FetchRequestTests
     {
         private static readonly string SqliteFilePath =
-            @"/Users/kris/Projects/Red.Db/DataAccess.Tests/Data/Database.sqlite3";
+            @"../../../Data/Database.sqlite3";
 
-        private static readonly string ConnectionString = $"Data Source={SqliteFilePath};Version=3;";
-        
+        private static readonly string ConnectionString =
+            $"Data Source={SqliteFilePath};Version=3;";
+
+
         [Fact]
         public void CanFetchPeopleOrderedByBirthdate()
         {
@@ -25,12 +22,9 @@ namespace DataAccess.Tests
                 .From("Person")
                 .OrderBy("Birthdate", SortDirection.Descending);
 
-            var counted = 0L;
-            
-            foreach (var record in db.Fetch(request))
-                counted++;
+            var numberOfeople = db.Fetch(request).Count();
 
-            Assert.Equal(11, counted); // Known number of records
+            Assert.Equal(11, numberOfeople); // Known number of records
         }
-    }    
+    }
 }

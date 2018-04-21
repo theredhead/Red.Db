@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace DataAccess
 {
     /// <summary>
-    /// Provides a series of low-level extension methods for working with IDbConnection and IDbCommand instances.
+    ///     Provides a series of low-level extension methods for working with IDbConnection and IDbCommand instances.
     /// </summary>
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public static class ConnectionExtensions
@@ -15,7 +15,7 @@ namespace DataAccess
         // Creating single parameters.
 
         /// <summary>
-        /// Create a parameter with the given name, value and type
+        ///     Create a parameter with the given name, value and type
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
@@ -33,7 +33,7 @@ namespace DataAccess
         }
 
         /// <summary>
-        /// Create an output only parameter with the given name, value and type
+        ///     Create an output only parameter with the given name, value and type
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
@@ -48,7 +48,7 @@ namespace DataAccess
         }
 
         /// <summary>
-        /// Create a parameter for the return value with the given name and type
+        ///     Create a parameter for the return value with the given name and type
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
@@ -73,7 +73,7 @@ namespace DataAccess
         // Creating and adding single parameters.
 
         /// <summary>
-        /// Add an input only parameter with the given name, value and type
+        ///     Add an input only parameter with the given name, value and type
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
@@ -89,7 +89,7 @@ namespace DataAccess
         }
 
         /// <summary>
-        /// Add an output only parameter with the given name and type
+        ///     Add an output only parameter with the given name and type
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
@@ -104,7 +104,7 @@ namespace DataAccess
         }
 
         /// <summary>
-        /// Add a parameter for the return value with the given name and type
+        ///     Add a parameter for the return value with the given name and type
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
@@ -129,7 +129,7 @@ namespace DataAccess
         // Creating parameters in bulk.
 
         /// <summary>
-        /// Add a named argument for every key/value pair in the arguments dictionary 
+        ///     Add a named argument for every key/value pair in the arguments dictionary
         /// </summary>
         /// <param name="command"></param>
         /// <param name="arguments"></param>
@@ -143,7 +143,7 @@ namespace DataAccess
         // Creating commands
 
         /// <summary>
-        /// Create a command with the given commandText
+        ///     Create a command with the given commandText
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="commandText"></param>
@@ -156,7 +156,7 @@ namespace DataAccess
         }
 
         /// <summary>
-        /// Create a command with the given commandText and the given input only named arguments
+        ///     Create a command with the given commandText and the given input only named arguments
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="commandText"></param>
@@ -173,7 +173,7 @@ namespace DataAccess
         // Fetching data
 
         /// <summary>
-        /// (Lazily) fetch an IEnumerable of T using a transformation function from IDataRecord to T
+        ///     (Lazily) fetch an IEnumerable of T using a transformation function from IDataRecord to T
         /// </summary>
         /// <param name="command"></param>
         /// <param name="forEachRow"></param>
@@ -183,15 +183,12 @@ namespace DataAccess
         {
             using (var reader = command.ExecuteReader())
             {
-                while (reader.Read())
-                {
-                    yield return forEachRow(reader);
-                }
+                while (reader.Read()) yield return forEachRow(reader);
             }
         }
 
         /// <summary>
-        /// (Lazily) fetch an IEnumerable of IDataRecord
+        ///     (Lazily) fetch an IEnumerable of IDataRecord
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
@@ -199,15 +196,12 @@ namespace DataAccess
         {
             using (var reader = command.ExecuteReader())
             {
-                while (reader.Read())
-                {
-                    yield return reader;
-                }
+                while (reader.Read()) yield return reader;
             }
         }
 
         /// <summary>
-        /// Execute the command and collect the results in a DataTable
+        ///     Execute the command and collect the results in a DataTable
         /// </summary>
         /// <param name="command"></param>
         /// <param name="loadOption"></param>
@@ -218,13 +212,15 @@ namespace DataAccess
         {
             var table = new DataTable();
             using (var reader = command.ExecuteReader())
+            {
                 table.Load(reader, loadOption, errorHandler);
+            }
 
             return table;
         }
 
         /// <summary>
-        /// Execute the command and collect the results in a DataSet
+        ///     Execute the command and collect the results in a DataSet
         /// </summary>
         /// <param name="command"></param>
         /// <param name="loadOption"></param>
@@ -243,7 +239,7 @@ namespace DataAccess
         }
 
         /// <summary>
-        /// Execute the command and return the first value of the first row returned as an instance of T
+        ///     Execute the command and return the first value of the first row returned as an instance of T
         /// </summary>
         /// <param name="command"></param>
         /// <typeparam name="T"></typeparam>

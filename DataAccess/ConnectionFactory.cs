@@ -5,12 +5,12 @@ namespace DataAccess
 {
     public class ConnectionFactory<T> : IConnectionFactory where T : IDbConnection
     {
-        public string ConnectionString { get; set; }
-
         public ConnectionFactory(string connectionString)
         {
             ConnectionString = connectionString;
         }
+
+        public string ConnectionString { get; set; }
 
         public IDbConnection CreateConnection()
         {

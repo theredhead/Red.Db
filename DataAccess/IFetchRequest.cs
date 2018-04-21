@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Data;
 
 namespace DataAccess
 {
@@ -13,7 +12,7 @@ namespace DataAccess
 
         IPredicate AddPredicate(IPredicate predicate);
         IPredicate CreatePredicate(string text, params object[] arguments);
-                            
+
         IOrderByClause AddOrderClauser(IOrderByClause createOrderByClause);
         IOrderByClause CreateOrderByClause(string columnName, SortDirection direction);
     }
