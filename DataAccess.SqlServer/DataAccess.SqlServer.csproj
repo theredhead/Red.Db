@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" Version="4.5.0-preview2-26406-04" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SqlServerSelectStatementBuilder.cs" />
+  </ItemGroup>
+</Project>
