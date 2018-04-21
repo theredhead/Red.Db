@@ -6,42 +6,27 @@ using System.Text;
 namespace DataAccess
 {
     public delegate void OnRecordDelegate(IDataRecord record);
-    
+
     public abstract class BaseDatabase : IDatabase
     {
         protected virtual bool UsesPositionalParameters => false;
 
         public abstract IDbConnection CreateConnection();
 
-        protected virtual string ParameterName(string name)
-        {
-            return "@" + name;
-        }
-
         public virtual string ParameterName(int index)
         {
-            return UsesPositionalParameters 
-                ? "?" 
+            return UsesPositionalParameters
+                ? "?"
                 : ParameterName($"p_{index}");
-        }
-
-        protected abstract string QuoteColumnName(string columnName);
-        protected abstract string QuoteTableName(string tableName);
-
-        public IFetchRequest CreateFetchRequest(string tableName)
-        {
-            var request = new FetchRequest
-            { 
-                TableName = tableName
-            };
-            return request;
         }
 
         public virtual IDbCommand CreateCommand(IFetchRequest request)
         {
-            string SqlDir(SortDirection direction) 
-                => direction == SortDirection.Ascending ? "ASC" : "DESC";
-            
+            string SqlDir(SortDirection direction)
+            {
+                return direction == SortDirection.Ascending ? "ASC" : "DESC";
+            }
+
             var builder = new StringBuilder();
 
             builder.Append("SELECT ");
@@ -55,7 +40,9 @@ namespace DataAccess
                 builder.AppendJoin(", ", expandedColumnNames);
             }
             else
+            {
                 builder.Append("*");
+            }
 
             builder.Append(" FROM ");
             builder.Append(QuoteTableName(request.TableName));
@@ -99,39 +86,8 @@ namespace DataAccess
                 parameter.Value = arguments[ix];
                 command.Parameters.Add(parameter);
             }
-            
+
             return command;
-        }
-
-        protected virtual string ExpandCommandText(string commandText)
-        {
-            var builder = new StringBuilder();
-            var length = commandText.Length;
-            var argumentCount = 0;
-
-            for (var index = 0; index < length; index++)
-            {
-                var currentCharacter = commandText[index];
-
-                if (currentCharacter == '?')
-                {
-                    if (index < length - 1)
-                    {
-                        var nextCharacter = commandText[index + 1];
-                        if (nextCharacter == '?')
-                        {
-                            builder.Append('?');
-                            index++;
-                            continue;
-                        }
-                    }
-                    builder.Append(ParameterName(argumentCount++));
-                }
-                else
-                    builder.Append(currentCharacter);
-            }
-
-            return builder.ToString();
         }
 
         public virtual IEnumerable<IDataRecord> Execute(string commandText, params object[] arguments)
@@ -139,13 +95,11 @@ namespace DataAccess
             using (var command = CreateCommand(commandText, arguments))
             {
                 command.Connection.Open();
-                using(var reader = command.ExecuteReader())
+                using (var reader = command.ExecuteReader())
                 {
-                    while (reader.Read())
-                    {
-                        yield return reader;
-                    }
+                    while (reader.Read()) yield return reader;
                 }
+
                 command.Connection.Close();
             }
         }
@@ -191,12 +145,60 @@ namespace DataAccess
             {
                 using (var reader = command.ExecuteReader())
                 {
-                    while (reader.Read())
-                    {
-                        yield return reader;
-                    }
+                    while (reader.Read()) yield return reader;
                 }
             }
+        }
+
+        protected virtual string ParameterName(string name)
+        {
+            return "@" + name;
+        }
+
+        protected abstract string QuoteColumnName(string columnName);
+        protected abstract string QuoteTableName(string tableName);
+
+        public IFetchRequest CreateFetchRequest(string tableName)
+        {
+            var request = new FetchRequest
+            {
+                TableName = tableName
+            };
+            return request;
+        }
+
+        protected virtual string ExpandCommandText(string commandText)
+        {
+            var builder = new StringBuilder();
+            var length = commandText.Length;
+            var argumentCount = 0;
+
+            for (var index = 0; index < length; index++)
+            {
+                var currentCharacter = commandText[index];
+
+                if (currentCharacter == '?')
+                {
+                    if (index < length - 1)
+                    {
+                        var nextCharacter = commandText[index + 1];
+                        if (nextCharacter == '?')
+                        {
+                            builder.Append('?');
+                            index++;
+                            continue;
+                        }
+                    }
+
+                    builder.Append(ParameterName(argumentCount++));
+                }
+                else
+                {
+                    builder.Append(currentCharacter);
+                }
+            }
+
+            return builder.ToString();
         }
     }
 }

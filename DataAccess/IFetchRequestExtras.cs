@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace DataAccess
+﻿namespace DataAccess
 {
     public static class IFetchRequestExtras
     {
@@ -9,8 +7,9 @@ namespace DataAccess
             request.AddPredicate(request.CreatePredicate(text, arguments));
             return request;
         }
-        
-        public static IFetchRequest OrderBy(this IFetchRequest request, string columnName, SortDirection direction = SortDirection.Ascending)
+
+        public static IFetchRequest OrderBy(this IFetchRequest request, string columnName,
+            SortDirection direction = SortDirection.Ascending)
         {
             request.AddOrderClauser(request.CreateOrderByClause(columnName, direction));
             return request;

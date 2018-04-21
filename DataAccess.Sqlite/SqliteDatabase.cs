@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.SQLite;    
+﻿using System.Data.SQLite;
 
 namespace DataAccess.Sqlite
 {
@@ -18,4 +17,5 @@ namespace DataAccess.Sqlite
         {
             return $"\"{tableName}\"";
         }
-    }}
+    }
+}
