@@ -19,7 +19,7 @@ namespace DataAccess
         {
             var predicate = new Predicate
             {
-                Text = text,
+                Text = $"({text})",
                 Arguments = arguments
             };
             return predicate;

@@ -4,7 +4,7 @@ namespace DataAccess
 {
     public interface IFetchRequest
     {
-        string TableName { get; }
+        string TableName { get; set; }
         IEnumerable<string> ColumnNames { get; set; }
 
         IEnumerable<IPredicate> Predicates { get; }

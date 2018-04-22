@@ -8,14 +8,6 @@ namespace DataAccess.SqlServer
         {
         }
 
-        protected override string QuoteColumnName(string columnName)
-        {
-            return $"[{columnName}]";
-        }
-
-        protected override string QuoteTableName(string tableName)
-        {
-            return $"[{tableName}]";
-        }
+        public override string QuoteObjectName(string objectName) => $"`{objectName}`";
     }
 }

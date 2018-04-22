@@ -5,11 +5,11 @@ using System.Text;
 
 namespace DataAccess
 {
-    public delegate void OnRecordDelegate(IDataRecord record);
-
     public abstract class BaseDatabase : IDatabase
     {
         protected virtual bool UsesPositionalParameters => false;
+
+        public abstract string QuoteObjectName(string tableName);
 
         public abstract IDbConnection CreateConnection();
 
@@ -22,6 +22,7 @@ namespace DataAccess
 
         public virtual IDbCommand CreateCommand(IFetchRequest request)
         {
+            var argumentCount = 0;
             string SqlDir(SortDirection direction)
             {
                 return direction == SortDirection.Ascending ? "ASC" : "DESC";
@@ -35,7 +36,7 @@ namespace DataAccess
             {
                 var expandedColumnNames =
                     from columnName in request.ColumnNames
-                    select QuoteColumnName(columnName);
+                    select QuoteObjectName(columnName);
 
                 builder.AppendJoin(", ", expandedColumnNames);
             }
@@ -45,13 +46,13 @@ namespace DataAccess
             }
 
             builder.Append(" FROM ");
-            builder.Append(QuoteTableName(request.TableName));
+            builder.Append(QuoteObjectName(request.TableName));
 
             if (request.Predicates.Any())
             {
                 var expandedPredicateTexts =
                     from predicate in request.Predicates
-                    select ExpandCommandText(predicate.Text);
+                    select predicate.Text;
 
                 builder.Append(" WHERE ");
                 builder.AppendJoin(" AND ", expandedPredicateTexts);
@@ -61,7 +62,7 @@ namespace DataAccess
             {
                 var expandedOrderByClauses =
                     from orderBy in request.OrderClauses
-                    select $"{QuoteColumnName(orderBy.ColumnName)} {SqlDir(orderBy.Direction)}";
+                    select $"{QuoteObjectName(orderBy.ColumnName)} {SqlDir(orderBy.Direction)}";
 
                 builder.Append(" ORDER BY ");
                 builder.AppendJoin(", ", expandedOrderByClauses);
@@ -90,16 +91,31 @@ namespace DataAccess
             return command;
         }
 
+        public virtual int ExecuteNonQuery(string commandText, params object[] arguments)
+        {
+            int result = 0;
+            using (var command = CreateCommand(commandText, arguments))
+            {
+                if (command.Connection.State == ConnectionState.Closed)
+                    command.Connection.Open();
+
+                result = command.ExecuteNonQuery(); 
+                command.Connection.Close();
+            }
+
+            return result;
+        }
         public virtual IEnumerable<IDataRecord> Execute(string commandText, params object[] arguments)
         {
             using (var command = CreateCommand(commandText, arguments))
             {
-                command.Connection.Open();
+                if (command.Connection.State == ConnectionState.Closed)
+                    command.Connection.Open();
+
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read()) yield return reader;
                 }
-
                 command.Connection.Close();
             }
         }
@@ -149,29 +165,45 @@ namespace DataAccess
                 }
             }
         }
+        
+        public virtual IEnumerable<T> Fetch<T>(IFetchRequest request) where T : IDataRecordLoadable, new() 
+        {
+            using (var command = CreateCommand(request))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read()) yield return MakeInstanceWithRecord<T>(reader);
+                }
+            }
+        }
+
+        protected virtual T MakeInstanceWithRecord<T>(IDataRecord record) where T : IDataRecordLoadable, new()
+        {
+            var instance = new  T();
+            instance.Load(record);
+            return instance;
+        }
 
         protected virtual string ParameterName(string name)
         {
             return "@" + name;
         }
 
-        protected abstract string QuoteColumnName(string columnName);
-        protected abstract string QuoteTableName(string tableName);
-
+        public IFetchRequest CreateFetchRequest() => new FetchRequest();
+        
         public IFetchRequest CreateFetchRequest(string tableName)
         {
-            var request = new FetchRequest
-            {
-                TableName = tableName
-            };
+            var request = CreateFetchRequest();
+            request.TableName = tableName;
             return request;
         }
-
+        
         protected virtual string ExpandCommandText(string commandText)
         {
+            int argumentCount = 0;
+
             var builder = new StringBuilder();
             var length = commandText.Length;
-            var argumentCount = 0;
 
             for (var index = 0; index < length; index++)
             {
@@ -190,7 +222,8 @@ namespace DataAccess
                         }
                     }
 
-                    builder.Append(ParameterName(argumentCount++));
+                    builder.Append(ParameterName(argumentCount));
+                    argumentCount++;
                 }
                 else
                 {
