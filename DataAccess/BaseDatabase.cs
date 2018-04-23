@@ -2,6 +2,7 @@
 using System.Data;
 using System.Linq;
 using System.Text;
+using General;
 
 namespace DataAccess
 {
@@ -22,7 +23,6 @@ namespace DataAccess
 
         public virtual IDbCommand CreateCommand(IFetchRequest request)
         {
-            var argumentCount = 0;
             string SqlDir(SortDirection direction)
             {
                 return direction == SortDirection.Ascending ? "ASC" : "DESC";
@@ -93,7 +93,7 @@ namespace DataAccess
 
         public virtual int ExecuteNonQuery(string commandText, params object[] arguments)
         {
-            int result = 0;
+            int result;
             using (var command = CreateCommand(commandText, arguments))
             {
                 if (command.Connection.State == ConnectionState.Closed)
@@ -175,6 +175,39 @@ namespace DataAccess
                     while (reader.Read()) yield return MakeInstanceWithRecord<T>(reader);
                 }
             }
+        }
+
+        public IDataRecord FetchSingle(IFetchRequest request, bool throwIfNotFound=true)
+        {
+            using (var command = CreateCommand(request))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read()) 
+                        return reader;
+                }
+            }
+
+            if (throwIfNotFound)
+                throw new Error($"{nameof(FetchSingle)} did not fetch anything");
+
+            return null;
+        }
+
+        public T FetchSingle<T>(IFetchRequest request, bool throwIfNotFound=true) where T : IDataRecordLoadable, new()
+        {
+            using (var command = CreateCommand(request))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read()) 
+                        return MakeInstanceWithRecord<T>(reader);
+                }
+            }
+            if (throwIfNotFound)
+                throw new Error($"{nameof(FetchSingle)} did not fetch anything");
+
+            return default(T);
         }
 
         protected virtual T MakeInstanceWithRecord<T>(IDataRecord record) where T : IDataRecordLoadable, new()

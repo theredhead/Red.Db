@@ -30,5 +30,9 @@ namespace DataAccess
         // Fething data using FetchRequests
         IEnumerable<IDataRecord> Fetch(IFetchRequest request);
         IEnumerable<T> Fetch<T>(IFetchRequest request) where T : IDataRecordLoadable, new();
+
+        IDataRecord FetchSingle(IFetchRequest request, bool throwIfNotFound=true);
+        T FetchSingle<T>(IFetchRequest request, bool throwIfNotFound=true) where T : IDataRecordLoadable, new();
+
     }
 }
